@@ -16,6 +16,28 @@ void criarArvore(tipoArvore *arvore){
     arvore->topo = NULL;
 }
 
+tipoNo* buscarPai(int numero, NoArvore *raiz){
+    if(raiz == NULL){
+        return raiz;
+    }
+    if(raiz->noEsquerdo->dado == numero || raiz->noDireito->dado == numero){
+        return raiz;
+    }
+
+    if (numero < raiz->dado){
+        return buscarPai(numero, raiz->noEsquerdo);
+    }
+
+    if(numero > raiz->dado){
+        return buscarPai(numero,raiz->noDireito);
+    }
+}
+}
+
+tipoNo* buscarAvo(int numero, NoArvore *raiz){
+    return buscarPai(((buscarPai(numero, raiz))->dado),raiz);
+}
+
 tipoNo* balancearCor(tipoNo *raiz){
 }
 
@@ -32,10 +54,9 @@ void inserirElemento(int numero, tipoNo *raiz){
     if(numero < raiz->dado){
         raiz->noEsquerdo = inserirElemento(numero, raiz->noEsquerdo);
     }
-    if (numero > raiz->dado){
+    else if (numero > raiz->dado){
         raiz->noDireito = inserirElemento(numero, raiz->noDireito);
     }
-    raiz = balancearArvore(raiz);
     return balancearCor(raiz);
 }
 
