@@ -28,11 +28,11 @@ tipoNo* buscarPai(int numero, tipoNo *raiz){
     }
 
     else if((raiz->noEsquerdo != NULL) && (raiz->noEsquerdo->dado == numero)){
-            return raiz;
+        return raiz;
     }
 
     else if((raiz->noDireito != NULL) && (raiz->noDireito->dado == numero)){
-            return raiz;
+        return raiz;
     }
 
     else{
