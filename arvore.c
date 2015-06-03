@@ -53,7 +53,7 @@ tipoNo* buscarAvo(int numero, tipoNo *raiz){
         return NULL;
     }
     else{
-        return buscarPai(aux->dado, raiz);
+        return buscarPai(pai->dado, raiz);
     }
 }
 
