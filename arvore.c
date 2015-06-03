@@ -16,26 +16,71 @@ void criarArvore(tipoArvore *arvore){
     arvore->topo = NULL;
 }
 
-tipoNo* buscarPai(int numero, NoArvore *raiz){
+tipoNo* buscarPai(int numero, tipoNo *raiz){
+    tipoNo *aux;
+
     if(raiz == NULL){
-        return raiz;
-    }
-    if(raiz->noEsquerdo->dado == numero || raiz->noDireito->dado == numero){
-        return raiz;
+        return NULL;
     }
 
-    if (numero < raiz->dado){
-        return buscarPai(numero, raiz->noEsquerdo);
+    if(raiz->noEsquerdo == NULL && raiz->noDireito == NULL){
+        return NULL;
     }
 
-    if(numero > raiz->dado){
-        return buscarPai(numero,raiz->noDireito);
+    else if((raiz->noEsquerdo != NULL) && (raiz->noEsquerdo->dado == numero)){
+            return raiz;
+    }
+
+    else if((raiz->noDireito != NULL) && (raiz->noDireito->dado == numero)){
+            return raiz;
+    }
+
+    else{
+        aux = buscarPai(numero,raiz->noEsquerdo);
+        if(aux==NULL){
+            aux = buscarPai(numero,raiz->noDireito);
+        }
+        return aux;
     }
 }
+
+tipoNo* buscarAvo(int numero, tipoNo *raiz){
+    tipoNo *pai;
+
+    pai = buscarPai(numero,raiz);
+
+    if(pai == NULL){
+        return NULL;
+    }
+    else{
+        return buscarPai(aux->dado, raiz);
+    }
 }
 
-tipoNo* buscarAvo(int numero, NoArvore *raiz){
-    return buscarPai(((buscarPai(numero, raiz))->dado),raiz);
+tipoNo* buscarTio(int numero, tipoNo *raiz){
+    tipoNo *avo;
+    int pai;
+
+    avo = buscarAvo(numero, raiz);
+
+    if(avo == NULL){
+        return NULL;
+    }
+
+    else{
+        if(avo->noEsquerdo == NULL || avo->noDireito == NULL){
+            return NULL;
+        }
+        else{
+            pai = (buscarPai(numero, raiz)->dado);
+            if(avo->noEsquerdo->dado == pai){
+                return avo->noDireito;
+            }
+            if(avo->noDireito->dado == pai){
+                return avo->noEsquerdo;
+            }
+        }
+    }
 }
 
 tipoNo* balancearCor(tipoNo *raiz){
