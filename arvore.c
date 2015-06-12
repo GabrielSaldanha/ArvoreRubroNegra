@@ -1,10 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
+#define RUB 0
+#define NEG 1
 #define N_MAX 1027
 
 typedef struct tipoNo{
     int dado;
     char cor;
+    struct tipoNo *noPai;
     struct tipoNo *noEsquerdo;
     struct tipoNo *noDireito;
 }tipoNo;
@@ -19,94 +22,239 @@ void criarArvore(tipoArvore *arvore){
     arvore->topo = NULL;
 }
 
-tipoNo* buscarPai(int numero, tipoNo *raiz){
-    tipoNo *aux;
 
-    if(raiz == NULL){
+tipoNo* noAvo(tipoNo *n){
+    if(n == NULL){ 
         return NULL;
     }
-
-    if(raiz->noEsquerdo == NULL && raiz->noDireito == NULL){
+    
+    if(n->noPai == NULL){ 
         return NULL;
     }
+    
+    else{
+        return n->noPai->noPai;
+    }
+}
 
-    else if((raiz->noEsquerdo != NULL) && (raiz->noEsquerdo->dado == numero)){
+tipoNo* noIrmao(tipoNo *n){
+    if(n == NULL){
+        return NULL;
+    }
+    
+    if(n->noPai == NULL){
+        return NULL;
+    }
+    
+    if(n == n->noPai->noEsquerdo){
+        return n->noPai->noDireito;
+    }
+    
+    else{
+        return n->noPai->noEsquerdo;
+    }
+}
+
+tipoNo* noTio(tipoNo *n){
+    if(n == NULL){
+        return NULL;
+    }
+    
+    return noIrmao(n->noPai);
+}
+
+
+tipoNo* rotacaoEsquerda(tipoNo* raiz, tipoNo* n){
+    tipoNo* r = n->noDireito;
+
+    if(n == NULL){
         return raiz;
     }
 
-    else if((raiz->noDireito != NULL) && (raiz->noDireito->dado == numero)){
+    if(raiz == n){
+        raiz = r;
+    } 
+
+    else if(n == n->noPai->noEsquerdo){
+        n->noPai->noEsquerdo = r;
+    } 
+
+    else{
+        n->noPai->noDireito = r;
+    }
+
+    n->noDireito = r->noEsquerdo;
+
+    if(r->noEsquerdo != NULL){
+        r->noEsquerdo->noPai = n;
+    }
+
+    r->noEsquerdo = n;
+    r->noPai = n->noPai;
+    n->noPai = r;
+
+    return raiz;
+}
+
+tipoNo* rotacaoDireita(tipoNo* raiz, tipoNo* n){
+    tipoNo* l = n->noEsquerdo;
+
+    if(n == NULL){
+        return raiz;
+    }
+
+    if(raiz == n){
+        raiz = l;
+    }
+    
+    else if(n == n->noPai->noEsquerdo){
+        n->noPai->noEsquerdo = l;
+    }
+
+    else{
+        n->noPai->noDireito = l;
+    }
+    
+    n->noEsquerdo = l->noDireito;
+    
+    if(l->noDireito != NULL){
+        l->noDireito->noPai = n;
+    }
+
+    l->noDireito = n;
+    l->noPai = n->noPai;
+    n->noPai = l;
+
+    return raiz;
+}
+
+int verificaCor(tipoNo* n){
+    if(n == NULL){
+        return NEG;
+    }
+
+    else{
+        return n->cor;
+    }
+}
+
+tipoNo* balanceamentoCaso5(tipoNo* raiz, tipoNo* n){
+    n->noPai->cor = NEG;
+    noAvo(n)->cor = RUB;
+
+    if(n == n->noPai->noEsquerdo && n->noPai == noAvo(n)->noEsquerdo){
+        raiz = rotacaoDireita(raiz, noAvo(n));
+    }
+    
+    else if(n == n->noPai->noDireito && n->noPai == noAvo(n)->noDireito){       /// Correcao aqui, estava "!=" e "||".
+        raiz = rotacaoEsquerda(raiz, noAvo(n));
+    }
+
+    return raiz;
+}
+
+tipoNo* balanceamentoCaso4(tipoNo* raiz, tipoNo* n){
+    if(n == n->noPai->noDireito && n->noPai == noAvo(n)->noEsquerdo){      // A primeira comparacao de n estava "n == n->noPai->noEsq" !!!!!
+        raiz = rotacaoEsquerda(raiz, n->noPai);
+        n = n->noEsquerdo;
+    }
+    
+    else if(n == n->noPai->noEsquerdo && n->noPai == noAvo(n)->noDireito){
+        raiz = rotacaoDireita(raiz, n->noPai);
+        n = n->noDireito;
+    }
+
+    return balanceamentoCaso5(raiz, n);
+}
+
+tipoNo* balanceamentoCaso1(tipoNo* raiz, tipoNo* n);
+
+tipoNo* balanceamentoCaso3(tipoNo* raiz, tipoNo* n){
+    if(verificaCor(noTio(n)) == RUB){
+        n->noPai->cor = NEG;
+        noTio(n)->cor = NEG;
+        noAvo(n)->cor = RUB;
+        return balanceamentoCaso1(raiz, noAvo(n));
+    }
+    
+    else{
+        return balanceamentoCaso4(raiz, n);
+    }
+}
+
+tipoNo* balanceamentoCaso2(tipoNo* raiz, tipoNo* n){
+    if(n->noPai->cor == NEG){
         return raiz;
     }
 
     else{
-        aux = buscarPai(numero,raiz->noEsquerdo);
-        if(aux==NULL){
-            aux = buscarPai(numero,raiz->noDireito);
-        }
-        return aux;
+        return balanceamentoCaso3(raiz, n);
     }
 }
 
-tipoNo* buscarAvo(int numero, tipoNo *raiz){
-    tipoNo *pai;
-
-    pai = buscarPai(numero,raiz);
-
-    if(pai == NULL){
-        return NULL;
-    }
-    else{
-        return buscarPai(pai->dado, raiz);
-    }
-}
-
-tipoNo* buscarTio(int numero, tipoNo *raiz){
-    tipoNo *avo;
-    int pai;
-
-    avo = buscarAvo(numero, raiz);
-
-    if(avo == NULL){
-        return NULL;
+tipoNo* balanceamentoCaso1(tipoNo* raiz, tipoNo* n){
+    if(n->noPai == NULL){
+        n->cor = NEG;
+        return raiz;
     }
 
     else{
-        if(avo->noEsquerdo == NULL || avo->noDireito == NULL){
-            return NULL;
-        }
-        else{
-            pai = (buscarPai(numero, raiz)->dado);
-            if(avo->noEsquerdo->dado == pai){
-                return avo->noDireito;
-            }
-            if(avo->noDireito->dado == pai){
-                return avo->noEsquerdo;
-            }
-        }
+        return balanceamentoCaso2(raiz, n);
     }
 }
 
-tipoNo* balancearCor(tipoNo *raiz){
+tipoNo* noNovo(int dado){
+    tipoNo* aux;
+
+    aux = (tipoNo *) malloc (sizeof(tipoNo));
+    aux->dado = dado;
+    aux->cor = RUB;
+    aux->noEsquerdo = NULL;
+    aux->noDireito = NULL;
+    aux->noPai = NULL;
+    return aux;
 }
 
 tipoNo* inserirElemento(int numero, tipoNo *raiz){
+    tipoNo* novo = noNovo(numero);
+    
     if(raiz == NULL){
-        tipoNo *aux;
-        aux = (tipoNo *) malloc (sizeof(tipoNo));
-        aux->dado = numero;
-        aux->cor = 'V';
-        aux->noEsquerdo = NULL;
-        aux->noDireito = NULL;
-        raiz = aux;
+        novo->cor = NEG;
+        return novo;
     }
-    if(numero < raiz->dado){
-        raiz->noEsquerdo = inserirElemento(numero, raiz->noEsquerdo);
+
+    tipoNo* aux = raiz;
+
+    while(1){
+        if(novo->dado == aux->dado){
+            free (novo);
+            return raiz;
+        }
+
+        else if(novo->dado < aux->dado){
+            if(aux->noEsquerdo == NULL){
+                aux->noEsquerdo = novo;
+                novo->noPai = aux;
+                return balanceamentoCaso1(raiz, novo);
+            }
+
+            else{
+                aux = aux->noEsquerdo;
+            }
+        }
+
+        else {
+            if (aux->noDireito == NULL){
+                aux->noDireito = novo;
+                novo->noPai = aux;
+                return balanceamentoCaso1(raiz, novo);
+            }
+            
+            else{ 
+                aux = aux->noDireito;
+            }
+        }
     }
-    else if (numero > raiz->dado){
-        raiz->noDireito = inserirElemento(numero, raiz->noDireito);
-    }
-    //return balancearCor(raiz);
-    return raiz;
 }
 
 void inserirArvore(int numero, tipoArvore* arvore){
@@ -177,6 +325,13 @@ int imprimirArvoreInterno(tipoNo *raiz, int e_esquerda, int distancia, int nivel
     if (!raiz) return 0;
 
     sprintf(strAux, "(%05d)", raiz->dado);
+    
+    if(raiz->cor == RUB){
+        printf("Dado: %d, Cor: Vermelho\n", raiz->dado);
+    }
+    else{
+        printf("Dado: %d, Cor: Preto\n", raiz->dado);
+    }
 
       esquerda  = imprimirArvoreInterno(raiz->noEsquerdo,  1, distancia, nivelAtual + 1, alt, str);
       direita = imprimirArvoreInterno(raiz->noDireito, 0, distancia + esquerda + tamanhoNo, nivelAtual + 1, alt, str);
@@ -355,4 +510,6 @@ int main(){
 
     criarArvore(&arvore);
     menuInicial();
+
+    return 0;
 }
