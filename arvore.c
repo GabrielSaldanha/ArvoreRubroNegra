@@ -24,14 +24,14 @@ void criarArvore(tipoArvore *arvore){
 
 
 tipoNo* noAvo(tipoNo *n){
-    if(n == NULL){ 
+    if(n == NULL){
         return NULL;
     }
-    
-    if(n->noPai == NULL){ 
+
+    if(n->noPai == NULL){
         return NULL;
     }
-    
+
     else{
         return n->noPai->noPai;
     }
@@ -41,15 +41,15 @@ tipoNo* noIrmao(tipoNo *n){
     if(n == NULL){
         return NULL;
     }
-    
+
     if(n->noPai == NULL){
         return NULL;
     }
-    
+
     if(n == n->noPai->noEsquerdo){
         return n->noPai->noDireito;
     }
-    
+
     else{
         return n->noPai->noEsquerdo;
     }
@@ -59,7 +59,7 @@ tipoNo* noTio(tipoNo *n){
     if(n == NULL){
         return NULL;
     }
-    
+
     return noIrmao(n->noPai);
 }
 
@@ -73,11 +73,11 @@ tipoNo* rotacaoEsquerda(tipoNo* raiz, tipoNo* n){
 
     if(raiz == n){
         raiz = r;
-    } 
+    }
 
     else if(n == n->noPai->noEsquerdo){
         n->noPai->noEsquerdo = r;
-    } 
+    }
 
     else{
         n->noPai->noDireito = r;
@@ -106,7 +106,7 @@ tipoNo* rotacaoDireita(tipoNo* raiz, tipoNo* n){
     if(raiz == n){
         raiz = l;
     }
-    
+
     else if(n == n->noPai->noEsquerdo){
         n->noPai->noEsquerdo = l;
     }
@@ -114,9 +114,9 @@ tipoNo* rotacaoDireita(tipoNo* raiz, tipoNo* n){
     else{
         n->noPai->noDireito = l;
     }
-    
+
     n->noEsquerdo = l->noDireito;
-    
+
     if(l->noDireito != NULL){
         l->noDireito->noPai = n;
     }
@@ -145,7 +145,7 @@ tipoNo* balanceamentoCaso5(tipoNo* raiz, tipoNo* n){
     if(n == n->noPai->noEsquerdo && n->noPai == noAvo(n)->noEsquerdo){
         raiz = rotacaoDireita(raiz, noAvo(n));
     }
-    
+
     else if(n == n->noPai->noDireito && n->noPai == noAvo(n)->noDireito){       /// Correcao aqui, estava "!=" e "||".
         raiz = rotacaoEsquerda(raiz, noAvo(n));
     }
@@ -158,7 +158,7 @@ tipoNo* balanceamentoCaso4(tipoNo* raiz, tipoNo* n){
         raiz = rotacaoEsquerda(raiz, n->noPai);
         n = n->noEsquerdo;
     }
-    
+
     else if(n == n->noPai->noEsquerdo && n->noPai == noAvo(n)->noDireito){
         raiz = rotacaoDireita(raiz, n->noPai);
         n = n->noDireito;
@@ -176,7 +176,7 @@ tipoNo* balanceamentoCaso3(tipoNo* raiz, tipoNo* n){
         noAvo(n)->cor = RUB;
         return balanceamentoCaso1(raiz, noAvo(n));
     }
-    
+
     else{
         return balanceamentoCaso4(raiz, n);
     }
@@ -217,7 +217,7 @@ tipoNo* noNovo(int dado){
 
 tipoNo* inserirElemento(int numero, tipoNo *raiz){
     tipoNo* novo = noNovo(numero);
-    
+
     if(raiz == NULL){
         novo->cor = NEG;
         return novo;
@@ -249,8 +249,8 @@ tipoNo* inserirElemento(int numero, tipoNo *raiz){
                 novo->noPai = aux;
                 return balanceamentoCaso1(raiz, novo);
             }
-            
-            else{ 
+
+            else{
                 aux = aux->noDireito;
             }
         }
@@ -276,6 +276,32 @@ tipoNo* buscarElemento(int numero, tipoNo *raiz){
 
 tipoNo* buscarNaArvore(int numero, tipoArvore arvore){
     return buscarElemento(numero, arvore.topo);
+}
+
+tipoNo* maiorDosMenores(tipoNo *raiz){
+    tipoNo *aux;
+
+    aux = raiz->noEsquerdo;
+
+    if (aux != NULL){
+        if(aux->noDireito != NULL){
+            return maiorDosMenores(aux->noDireito);
+        }
+    }
+    return aux;
+}
+
+tipoNo* menorDosMaiores(tipoNo *raiz){
+    tipoNo *aux;
+
+    aux = raiz->noDireito;
+
+    if(aux != NULL){
+        if(aux->noEsquerdo != NULL){
+            return menorDosMaiores(aux->noEsquerdo);
+        }
+    }
+    return aux;
 }
 
 tipoNo* removerElemento(int numero, tipoNo *raiz){
@@ -325,7 +351,7 @@ int imprimirArvoreInterno(tipoNo *raiz, int e_esquerda, int distancia, int nivel
     if (!raiz) return 0;
 
     sprintf(strAux, "(%05d)", raiz->dado);
-    
+
     if(raiz->cor == RUB){
         printf("Dado: %d, Cor: Vermelho\n", raiz->dado);
     }
