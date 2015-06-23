@@ -283,11 +283,10 @@ tipoNo* maiorDosMenores(tipoNo *raiz){
 
     aux = raiz->noEsquerdo;
 
-    if (aux != NULL){
-        if(aux->noDireito != NULL){
-            return maiorDosMenores(aux->noDireito);
-        }
+    while (aux->noDireito != NULL){
+       aux = aux->noDireito;
     }
+
     return aux;
 }
 
@@ -296,15 +295,153 @@ tipoNo* menorDosMaiores(tipoNo *raiz){
 
     aux = raiz->noDireito;
 
-    if(aux != NULL){
-        if(aux->noEsquerdo != NULL){
-            return menorDosMaiores(aux->noEsquerdo);
-        }
+    while(aux->noEsquerdo != NULL){
+        aux = aux->noEsquerdo;
     }
     return aux;
 }
 
+tipoNo* removePreto(tipoNo *aux,tipoNo *raiz);
+
+tipoNo* removeDuploPreto(tipoNo *aux,tipoNo *raiz){
+    tipoNo *M;
+    tipoNo *pai;
+    int auxDado;
+
+    /*if(aux->noEsquerdo == NULL && aux->noDireito == NULL){
+        return removeSemiFolhaPreta;
+    }*/
+
+    M = maiorDosMenores(raiz);
+
+    if(verificaCor(M) == RUB){
+        auxDado = aux->dado;
+        aux->dado = M->dado;
+        M->dado = auxDado;
+
+        pai = M->noPai;
+
+        pai->noDireito = NULL;
+
+        free(M);
+        return raiz;
+    }
+
+    M = menorDosMaiores(raiz);
+
+    if(verificaCor(M) == RUB){
+        auxDado = aux->dado;
+        aux->dado = M->dado;
+        M->dado = auxDado;
+
+        pai = M->noPai;
+
+        pai->noEsquerdo = NULL;
+
+        free(M);
+        return raiz;
+    }
+
+    auxDado = aux->dado;
+    aux->dado = M->dado;
+    M->dado = auxDado;
+    return removePreto(M,raiz);
+}
+
+tipoNo* removeVermelho(tipoNo *aux,tipoNo *raiz);
+
+tipoNo* removePreto(tipoNo *aux, tipoNo *raiz){
+    int auxDado;
+
+    if(verificaCor(aux->noEsquerdo) == NEG && verificaCor(aux->noDireito) == NEG){
+        return removeDuploPreto(aux,raiz);
+    }
+
+    if(verificaCor(aux->noEsquerdo) == RUB){
+        auxDado = aux->noEsquerdo->dado;
+        aux->noEsquerdo->dado = aux->dado;
+        aux->dado = auxDado;
+
+        return removeVermelho(aux->noEsquerdo,raiz);
+    }
+
+    auxDado = aux->noDireito->dado;
+    aux->noDireito->dado = aux->dado;
+    aux->dado = auxDado;
+    return removeVermelho(aux->noDireito,raiz);
+}
+
+
+tipoNo* removeVermelho(tipoNo *aux,tipoNo *raiz){
+    tipoNo *pai;
+    tipoNo *M;
+
+    int auxDado;
+
+    if(aux->noEsquerdo == NULL && aux->noDireito == NULL){
+        pai = aux->noPai;
+
+        if(pai->noEsquerdo != NULL && pai->noEsquerdo->dado == aux->dado){
+            pai->noEsquerdo = NULL;
+            free(aux);
+            return raiz;
+        }
+        else{
+            pai->noDireito = NULL;
+            free(aux);
+            return raiz;
+        }
+    }
+
+    M = maiorDosMenores(raiz);
+
+    if(verificaCor(M) == RUB){
+        auxDado = aux->dado;
+        aux->dado = M->dado;
+        M->dado = auxDado;
+
+        pai = M->noPai;
+
+        pai->noDireito = NULL;
+
+        free(M);
+        return raiz;
+    }
+
+    M = menorDosMaiores(raiz);
+
+    if(verificaCor(M) == RUB){
+        auxDado = aux->dado;
+        aux->dado = M->dado;
+        M->dado = auxDado;
+
+        pai = M->noPai;
+
+        pai->noEsquerdo = NULL;
+
+        free(M);
+        return raiz;
+    }
+
+    auxDado = aux->dado;
+    aux->dado = M->dado;
+    M->dado = auxDado;
+    return removePreto(M,raiz);
+}
+
 tipoNo* removerElemento(int numero, tipoNo *raiz){
+    tipoNo *aux;
+
+    aux = buscarElemento(numero,raiz);
+
+    if(verificaCor(aux) == RUB){
+        return removeVermelho(aux,raiz);
+    }
+
+    else{
+        return removePreto(aux,raiz);
+    }
+
 }
 
 void removerDaArvore(int numero, tipoArvore *arvore){
@@ -317,13 +454,15 @@ void lerArquivo(tipoArvore *arvore, char *nomeArquivo){
     arquivo = fopen(nomeArquivo, "r");
     if(arquivo == 0){
         printf("\nNao existe o arquivo na pasta do programa.\n\n");
-    } else {
+    }
+
+    else {
         while((fscanf(arquivo,"%d",&valor) != EOF)){
             inserirArvore(valor, arvore);
         }
         printf("\nOs elementos do arquivo foram inseridos na arvore com sucesso.\n\n");
     }
-    fclose(arquivo);
+    //fclose(arquivo);
 }
 
 int maior(int numeroA, int numeroB){
@@ -359,8 +498,8 @@ int imprimirArvoreInterno(tipoNo *raiz, int e_esquerda, int distancia, int nivel
         printf("Dado: %d, Cor: Preto\n", raiz->dado);
     }
 
-      esquerda  = imprimirArvoreInterno(raiz->noEsquerdo,  1, distancia, nivelAtual + 1, alt, str);
-      direita = imprimirArvoreInterno(raiz->noDireito, 0, distancia + esquerda + tamanhoNo, nivelAtual + 1, alt, str);
+    esquerda  = imprimirArvoreInterno(raiz->noEsquerdo,  1, distancia, nivelAtual + 1, alt, str);
+    direita = imprimirArvoreInterno(raiz->noDireito, 0, distancia + esquerda + tamanhoNo, nivelAtual + 1, alt, str);
 
     for (i = 0; i < tamanhoNo; i++)
         str[nivelAtual][distancia + esquerda + i] = strAux[i];
@@ -415,7 +554,7 @@ void imprimirOpcoes(int menu){
     }
 
     if(menu == 2){
-        printf("\nRemover elemento da:\n")/
+        printf("\nRemover elemento da:\n");
         printf("1 - Arvore\n");
     }
     if(menu == 3){
