@@ -22,7 +22,6 @@ void criarArvore(tipoArvore *arvore){
     arvore->topo = NULL;
 }
 
-
 tipoNo* noAvo(tipoNo *n){
     if(n == NULL){
         return NULL;
@@ -96,61 +95,17 @@ tipoNo* rotacaoEsquerda(tipoNo* raiz, tipoNo* n){
     return raiz;
 }
 
+void rotacaoEsquerdaRR(tipoNo **x){
 
-tipoNo* rotacaoEsquerdaR(tipoNo** raiz, tipoNo* n){
-    tipoNo *avo;
-    tipoNo *aux;
+    tipoNo *y;
+    y = *x;
+    *x = (*x)->noDireito;
+    (*x)->noPai = y->noPai;
+    y->noDireito = (*x)->noEsquerdo;
+    if(y->noDireito)    y->noDireito->noPai = y;
+    (*x)->noEsquerdo = y;
+    y->noPai = *x;
 
-    avo = noAvo(n);
-
-    if(n->noPai == NULL){
-        return *raiz;
-    }
-
-    if(n->noPai->noPai == NULL){
-        aux = *raiz;
-
-        if(aux->noEsquerdo == n){
-            *raiz = n;
-            if(n->noDireito == NULL){
-                aux->noPai = n;
-                n->noDireito = aux;
-            }
-            else{
-                aux->noEsquerdo = n->noDireito;
-                aux->noEsquerdo->noPai = aux;
-                aux->noPai = n;
-                n->noDireito = aux;
-            }
-        }
-
-        else{
-            *raiz = n;
-            if(n->noEsquerdo == NULL){
-                aux->noPai = n;
-                n->noEsquerdo = aux;
-            }
-
-            else{
-                aux->noDireito = n->noEsquerdo;
-                aux->noDireito->noPai = aux;
-                aux->noPai = n;
-                n->noEsquerdo = aux;
-            }
-        }
-
-        n->noPai = NULL;
-        return *raiz;
-    }
-
-    if((n->noPai == avo->noDireito) && (n == n->noPai->noDireito)){
-        aux = n->noPai;
-        avo->noDireito = n;
-        aux->noDireito = n->noEsquerdo;
-        n->noEsquerdo = aux;
-        aux->noDireito->noPai = aux;
-        aux->noPai = n;
-    }
 }
 
 
@@ -186,6 +141,17 @@ tipoNo* rotacaoDireita(tipoNo* raiz, tipoNo* n){
     return raiz;
 }
 
+void rotacaoDireitaRR(tipoNo **x){
+    tipoNo *y;
+    y = *x;
+    *x = (*x)->noEsquerdo;
+    (*x)->noPai = y->noPai;
+    y->noEsquerdo = (*x)->noDireito;
+    if(y->noEsquerdo)   y->noEsquerdo->noPai = y;
+    (*x)->noDireito = y;
+    y->noPai = *x;
+}
+
 int verificaCor(tipoNo* n){
     if(n == NULL){
         return NEG;
@@ -204,7 +170,7 @@ tipoNo* balanceamentoCaso5(tipoNo* raiz, tipoNo* n){
         raiz = rotacaoDireita(raiz, noAvo(n));
     }
 
-    else if(n == n->noPai->noDireito && n->noPai == noAvo(n)->noDireito){       /// Correcao aqui, estava "!=" e "||".
+    else if(n == n->noPai->noDireito && n->noPai == noAvo(n)->noDireito){
         raiz = rotacaoEsquerda(raiz, noAvo(n));
     }
 
@@ -212,7 +178,7 @@ tipoNo* balanceamentoCaso5(tipoNo* raiz, tipoNo* n){
 }
 
 tipoNo* balanceamentoCaso4(tipoNo* raiz, tipoNo* n){
-    if(n == n->noPai->noDireito && n->noPai == noAvo(n)->noEsquerdo){      // A primeira comparacao de n estava "n == n->noPai->noEsq" !!!!!
+    if(n == n->noPai->noDireito && n->noPai == noAvo(n)->noEsquerdo){
         raiz = rotacaoEsquerda(raiz, n->noPai);
         n = n->noEsquerdo;
     }
@@ -369,363 +335,157 @@ tipoNo* menorDosMaiores(tipoNo *raiz){
     }
 }
 
-tipoNo* verificaVermelho(tipoNo *n, tipoNo *raiz){
-    if(raiz == NULL){
-        return raiz;
-    }
-
-    if((n->noPai == raiz) && (verificaCor(raiz) == RUB)){
-        raiz->cor = NEG;
-    }
-
-    if(verificaCor(raiz) == RUB){
-        if(verificaCor(raiz->noEsquerdo) == RUB){
-            raiz->noEsquerdo->cor = NEG;
-        }
-
-        if(verificaCor(raiz->noDireito) == RUB){
-            raiz->noDireito->cor = NEG;
-        }
-    }
-
-    verificaVermelho(n, raiz->noEsquerdo);
-    verificaVermelho(n, raiz->noDireito);
-
-    return raiz;
-}
-
-/*int verificaPretos(tipoNo *raiz){
-    int preto = 0,noEsquerdo, noDireito;
-
-    if(verificaCor(raiz) == NEG){
-        if(raiz == NULL){
-            return preto + 1;
-        }
-        else{
-            preto++;
-        }
-    }
-
-    noEsquerdo = verificaPretos(raiz->noEsquerdo);
-    noDireito = verificaPretos(raiz->noDireito);
-
-    if(noEsquerdo == noDireito){
-        return 0;
-    }
-
-    else if(noEsquerdo < noDireito){
-        return -1;
-    }
-
-    else{
-        return 1;
-    }
-}*/
-
-/*tipoNo* verificaCores(tipoNo *aux, tipoNo *raiz){
+tipoNo* conserta(tipoNo** raiz, tipoNo* no){
     tipoNo* aux;
+    while((no != *raiz) && (verificaCor(no) == NEG)){
+        if(no == no->noPai->noEsquerdo){
+            aux = no->noPai->noDireito;
 
-    int qntpretos;
+            if(verificaCor(aux) == RUB){
+                aux->cor = NEG;
+                no->noPai->cor = RUB;
+                rotacaoEsquerdaRR(&no->noPai);
+                aux = no->noPai->noDireito;
+                continue;
+            }
 
-    //raiz = verificaVermelho(aux,raiz);
+            if(verificaCor(aux->noEsquerdo) == NEG && verificaCor(aux->noDireito) == NEG){
+                aux->cor = RUB;
+                no = no->noPai;
+                continue;
+            }
 
-    Qntpretos = verificaPretos(raiz);
+            else if(verificaCor(aux->noDireito) == RUB){
+                aux->noEsquerdo->cor = NEG;
+                aux->cor = RUB;
+                rotacaoDireitaRR(&aux);
+                aux = aux->noPai->noDireito;
+                continue;
+            }
+            aux->cor = no->noPai->cor;
+            no->noPai->cor = NEG;
+            aux->noDireito->cor = NEG;
+            rotacaoEsquerdaRR(&no->noPai);
+            no = *raiz;
+        }
 
-    if(Qntpretos == 0){
-        return raiz;
+        else{
+            aux = no->noPai->noEsquerdo;
+
+            if(verificaCor(aux) == RUB){
+                aux->cor = NEG;
+                no->noPai->cor = RUB;
+                rotacaoDireitaRR(&no->noPai);
+                aux = no->noPai->noEsquerdo;
+                continue;
+            }
+
+            if(verificaCor(aux->noEsquerdo) == NEG && verificaCor(aux->noDireito) == NEG){
+                aux->cor = RUB;
+                no = no->noPai;
+                continue;
+            }
+
+            else if(verificaCor(aux->noEsquerdo) == RUB){
+                aux->noDireito->cor = NEG;
+                aux->cor = RUB;
+                rotacaoEsquerdaRR(&aux);
+                aux = aux->noPai->noEsquerdo;
+                continue;
+            }
+            aux->cor = no->noPai->cor;
+            no->noPai->cor = NEG;
+            aux->noEsquerdo->cor = NEG;
+            rotacaoDireitaRR(&no->noPai);
+            no = *raiz;
+        }
     }
 
-    else if(Qntpretos == -1){
-        rotacaoEsquerda(raiz, aux);
+    if(no != NULL){
+        no->cor = NEG;
+    }
+    return *raiz;
+}
+
+tipoNo* transplante(tipoNo **raiz, tipoNo* no,tipoNo* noAux){
+    if(no->noPai == NULL){
+        *raiz = noAux;
+    }
+
+    else if(no == no->noPai->noEsquerdo){
+        no->noPai->noEsquerdo = noAux;
     }
 
     else{
-        rotacaoDireta(raiz, aux);
-    }
-}*/
-
-tipoNo* removeSemiFolhaPreta(tipoNo *aux, tipoNo *raiz){
-    tipoNo *irmao;
-    tipoNo *pai;
-    tipoNo *avo;
-    tipoNo *tio;
-
-    pai = aux->noPai;
-
-    if(pai == NULL){
-        free(aux);
-        return NULL;
+        no->noPai->noDireito = noAux;
     }
 
-    if(verificaCor(pai) == RUB){
-        pai->cor = NEG;
-
-        irmao = noIrmao(aux);
-
-        if(irmao == NULL){
-            if(pai->noEsquerdo != NULL && pai->noEsquerdo->dado == aux->dado){
-                pai->noEsquerdo = NULL;
-                free(aux);
-                return raiz;
-            }
-            else{
-                pai->noDireito = NULL;
-                free(aux);
-                return raiz;
-            }
-        }
-
-        irmao->cor = RUB;
-
-        //verificaCores(irmao);
-
-        if(pai->noEsquerdo != NULL && pai->noEsquerdo->dado == aux->dado){
-            pai->noEsquerdo = NULL;
-            free(aux);
-            return raiz;
-        }
-        else{
-            pai->noDireito = NULL;
-            free(aux);
-            return raiz;
-        }
+    if(noAux == NULL){
+        return *raiz;
     }
-
-    if(verificaCor(aux->noPai) == NEG){
-        irmao = noIrmao(aux);
-
-        if(irmao == NULL){
-            if(pai->noEsquerdo != NULL && pai->noEsquerdo->dado == aux->dado){
-                pai->noEsquerdo = NULL;
-                free(aux);
-                return raiz;
-            }
-            else{
-                pai->noDireito = NULL;
-                free(aux);
-                return raiz;
-            }
-        }
-
-        irmao->cor = RUB;
-
-        rotacaoEsquerdaR(&raiz, irmao);
-
-        //verificaCores(irmao);
-
-        avo = noAvo(aux);
-        if(avo == NULL){
-            if(pai->noEsquerdo != NULL && pai->noEsquerdo->dado == aux->dado){
-                pai->noEsquerdo = NULL;
-                free(aux);
-                return raiz;
-            }
-            else{
-                pai->noDireito = NULL;
-                free(aux);
-                return raiz;
-            }
-        }
-
-        avo->cor = NEG;
-
-        tio = noTio(aux);
-
-        if(tio == NULL){
-            if(pai->noEsquerdo != NULL && pai->noEsquerdo->dado == aux->dado){
-                pai->noEsquerdo = NULL;
-                free(aux);
-                return raiz;
-            }
-            else{
-                pai->noDireito = NULL;
-                free(aux);
-                return raiz;
-            }
-        }
-
-        tio->cor = RUB;
-
-        irmao = noIrmao(aux);
-
-        if(irmao == NULL){
-            if(pai->noEsquerdo != NULL && pai->noEsquerdo->dado == aux->dado){
-                pai->noEsquerdo = NULL;
-                free(aux);
-                return raiz;
-            }
-            else{
-                pai->noDireito = NULL;
-                free(aux);
-                return raiz;
-            }
-        }
-
-        //verificaCores(irmao);
-
-        if(pai->noEsquerdo != NULL && pai->noEsquerdo->dado == aux->dado){
-            pai->noEsquerdo = NULL;
-            free(aux);
-            return raiz;
-        }
-        else{
-            pai->noDireito = NULL;
-            free(aux);
-            return raiz;
-        }
+    else{
+        noAux->noPai = no->noPai;
+        return *raiz;
     }
-}
-
-tipoNo* removePreto(tipoNo *aux,tipoNo *raiz);
-
-tipoNo* removeDuploPreto(tipoNo *aux,tipoNo *raiz){
-    tipoNo *M;
-    tipoNo *pai;
-    int auxDado;
-
-    if(aux->noEsquerdo == NULL && aux->noDireito == NULL){
-        return removeSemiFolhaPreta(aux,raiz);
-    }
-
-    M = maiorDosMenores(raiz);
-
-    if(verificaCor(M) == RUB){
-        auxDado = aux->dado;
-        aux->dado = M->dado;
-        M->dado = auxDado;
-
-        pai = M->noPai;
-
-        pai->noDireito = NULL;
-
-        free(M);
-        return raiz;
-    }
-
-    M = menorDosMaiores(raiz);
-
-    if(verificaCor(M) == RUB){
-        auxDado = aux->dado;
-        aux->dado = M->dado;
-        M->dado = auxDado;
-
-        pai = M->noPai;
-
-        pai->noEsquerdo = NULL;
-
-        free(M);
-        return raiz;
-    }
-
-    if(M == NULL && aux->noPai == NULL){
-        auxDado = aux->noEsquerdo->dado;
-        aux->noEsquerdo->dado = raiz->dado;
-        raiz->dado = auxDado;
-        raiz->noEsquerdo = NULL;
-        free(aux->noEsquerdo);
-        return raiz;
-    }
-
-    auxDado = aux->dado;
-    aux->dado = M->dado;
-    M->dado = auxDado;
-    return removePreto(M,raiz);
-}
-
-tipoNo* removeVermelho(tipoNo *aux,tipoNo *raiz);
-
-tipoNo* removePreto(tipoNo *aux, tipoNo *raiz){
-    int auxDado;
-
-    if(verificaCor(aux->noEsquerdo) == NEG && verificaCor(aux->noDireito) == NEG){
-        return removeDuploPreto(aux,raiz);
-    }
-
-    if(verificaCor(aux->noEsquerdo) == RUB){
-        auxDado = aux->noEsquerdo->dado;
-        aux->noEsquerdo->dado = aux->dado;
-        aux->dado = auxDado;
-
-        return removeVermelho(aux->noEsquerdo,raiz);
-    }
-
-    auxDado = aux->noDireito->dado;
-    aux->noDireito->dado = aux->dado;
-    aux->dado = auxDado;
-    return removeVermelho(aux->noDireito,raiz);
-}
-
-
-tipoNo* removeVermelho(tipoNo *aux,tipoNo *raiz){
-    tipoNo *pai;
-    tipoNo *M;
-
-    int auxDado;
-
-    if(aux->noEsquerdo == NULL && aux->noDireito == NULL){
-        pai = aux->noPai;
-
-        if(pai->noEsquerdo != NULL && pai->noEsquerdo->dado == aux->dado){
-            pai->noEsquerdo = NULL;
-            free(aux);
-            return raiz;
-        }
-        else{
-            pai->noDireito = NULL;
-            free(aux);
-            return raiz;
-        }
-    }
-
-    M = maiorDosMenores(raiz);
-
-    if(verificaCor(M) == RUB){
-        auxDado = aux->dado;
-        aux->dado = M->dado;
-        M->dado = auxDado;
-
-        pai = M->noPai;
-
-        pai->noDireito = NULL;
-
-        free(M);
-        return raiz;
-    }
-
-    M = menorDosMaiores(raiz);
-
-    if(verificaCor(M) == RUB){
-        auxDado = aux->dado;
-        aux->dado = M->dado;
-        M->dado = auxDado;
-
-        pai = M->noPai;
-
-        pai->noEsquerdo = NULL;
-
-        free(M);
-        return raiz;
-    }
-
-    auxDado = aux->dado;
-    aux->dado = M->dado;
-    M->dado = auxDado;
-    return removePreto(M,raiz);
 }
 
 tipoNo* removerElemento(int numero, tipoNo *raiz){
+    tipoNo *no;
     tipoNo *aux;
+    tipoNo *M;
 
-    aux = buscarElemento(numero,raiz);
+    int auxCor;
 
-    if(verificaCor(aux) == RUB){
-        return removeVermelho(aux,raiz);
+    no = buscarElemento(numero, raiz);
+
+    if(raiz == NULL || no == NULL){
+        return raiz;
+    }
+
+    auxCor = no->cor;
+
+    if(no->noEsquerdo == NULL){
+        aux = no->noDireito;
+        transplante(&raiz,no, no->noDireito);
+    }
+
+    else if(no->noDireito == NULL){
+        aux = no->noEsquerdo;
+        transplante(&raiz, no, no->noEsquerdo);
     }
 
     else{
-        return removePreto(aux,raiz);
+        M = menorDosMaiores(no);
+        auxCor = M->cor;
+        aux = M->noDireito;
+
+        if(M->noPai == no){
+            if(aux != NULL){
+                aux->noPai = M;
+            }
+        }
+
+        else{
+            transplante(&raiz, M, M->noDireito);
+            M->noDireito = no->noDireito;
+            M->noDireito->noPai = M;
+        }
+
+        transplante(&raiz, no, M);
+        M->noEsquerdo = no->noEsquerdo;
+        M->noEsquerdo->noPai = M;
+        M->cor = no->cor;
     }
 
+    if(auxCor == NEG){
+        if(aux!= NULL){
+            conserta(&raiz, aux);
+        }
+    }
+
+    free(no);
+
+    return raiz;
 }
 
 void removerDaArvore(int numero, tipoArvore *arvore){
@@ -769,25 +529,16 @@ int calculaAltura(tipoNo *raiz){
 
 int imprimirArvoreInterno(tipoNo *raiz, int e_esquerda, int distancia, int nivelAtual, int alt, char str[][N_MAX*7]){
     char strAux[alt];
-    int i, esquerda, direita, tamanhoNo = 7; //tamanhoNo: tamanho do nó que será impresso. No caso, um inteiro de 4 posiçoes + parênteses
+    int i, esquerda, direita, tamanhoNo = 7;
 
     if (!raiz) return 0;
 
-    sprintf(strAux, "(%05d)", raiz->dado);
-
     if(raiz->cor == RUB){
-        printf("Dado: %d, Cor: Vermelho\n", raiz->dado);
-    }
-    else{
-        printf("Dado: %d, Cor: Preto\n", raiz->dado);
-    }
-
-    if(raiz->noPai == NULL){
-        printf("%d nao tem pai\n", raiz->dado);
+        sprintf(strAux,"%04d(V)",raiz->dado);
     }
 
     else{
-        printf("%d e filho de %d\n",raiz->dado,raiz->noPai->dado);
+        sprintf(strAux,"%04d(P)",raiz->dado);
     }
 
     esquerda  = imprimirArvoreInterno(raiz->noEsquerdo,  1, distancia, nivelAtual + 1, alt, str);
@@ -814,7 +565,7 @@ int imprimirArvoreInterno(tipoNo *raiz, int e_esquerda, int distancia, int nivel
     return esquerda + tamanhoNo + direita;
 }
 
-int imprimirArvore(tipoNo *raiz){
+void imprimirArvore(tipoNo *raiz){
     int i, alt = calculaAltura(raiz);
     char string[alt][N_MAX*7];
 
@@ -876,14 +627,14 @@ void menuInsercaoArvore(){
 }
 
 void menuRemocaoArvore(){
-    tipoNo *aux;
+    tipoNo* aux;
     int opcao = -1;
     int elemento;
     imprimirOpcoes(2);
     scanf("%d", &opcao);
     switch(opcao){
         case 1:
-            printf("\nEscolha um elemento para remover da arvore: ");
+        	printf("\nEscolha um elemento para remover da arvore: ");
             scanf("%d", &elemento);
             aux = buscarNaArvore(elemento, arvore);
             if(aux){
@@ -959,6 +710,8 @@ void menuInicial(){
                 break;
             case 0:
                 break;
+        default:
+            printf("Opcao invalida.\n\n");
         }
     }
 }
